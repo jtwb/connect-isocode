@@ -9,6 +9,7 @@
  *
  * TODO auto-insert isocode.js script tag?
  */
+var cproc = require('child_process');
 module.exports = function isocode(driver) {
 
   var driver = driver || 'phantomjs';
@@ -20,31 +21,25 @@ module.exports = function isocode(driver) {
   return function(req, res, next) {
     var write = res.write;
     var end = res.end;
+    var filter = cproc.spawn('bin/drivers/' + driver);
     var buffer = [];
 
-    function writeBuffer(chunk) {
+    filter.stdout.on('data', function (data) {
       buffer.push(chunk);
-    }
+    });
 
-    res.write = function(chunk, encoding) {
-      writeBuffer(chunk);
-    };
-
-    res.end = function(chunk, encoding) {
-      if (chunk) {
-        writeBuffer(chunk);
+    filter.on('close', function(code) {
+      if (code) {
+        res.statusCode = 500;
+        console.error('Isocode sent status code 500. Headless browser absent or unable to process page.');
+        end.call(res, '{ error: "success" }', encoding);
       }
+      end.call(res, buffer.join(''), encoding);
+    });
 
-      filter.on('close', function(code) {
-        if (code) {
-          res.statusCode = 500;
-          console.error('Isocode sent status code 500. Headless browser absent or unable to process page.');
-          end.call(res, '{ error: "success" }', encoding);
-        }
-        // TODO - hook into headless browser here
-        end.call(res, buffer.join(''), encoding);
-      });
-    };
+    res.write = filter.stdin.write;
+
+    res.end = filter.stdin.end;
 
     next();
   };
