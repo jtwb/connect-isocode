@@ -47,7 +47,14 @@ module.exports = function isocode(driver) {
     var buffer = [];
     var userMethodCallQueue = [];
 
-    var filter = cproc.spawn('isocode', ['--driver=' + driver]);
+    var context = [
+      '--',
+      '-',
+      req.connection.server.address().port,
+      req.url
+    ];
+
+    var filter = cproc.spawn('isocode', ['--driver=' + driver].concat(context));
 
     filter.on(        'error', error('child process'));
     filter.stderr.on( 'error', error('stderr'));
