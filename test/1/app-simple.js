@@ -4,7 +4,7 @@ var express = require('express');
 
 var app = express();
 
-app.use(isocode('phantom'));
+// app.use(isocode('phantom'));
 
 app.get(/.*/, function(req, res) {
 
