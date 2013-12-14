@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head></head>
+<body>
+
+    <output id="out">
+      <ul></ul>
+    </output>
+
+<script src="/assets/isocode.js"></script>
+<script src="/assets/jquery.js"></script>
+<script>
+
+
+    var out = function(data) {
+        $('<li><code>' + JSON.stringify(data) + '</code></li>').appendTo('#out ul');
+    };
+
+    var run_app = function(callback) {
+
+        var cats, dogs;
+
+        return $.when(
+            $.getJSON('/api/cats.json', function(catdata) {
+              cats = catdata;
+            }),
+
+            $.getJSON('/api/dogs.json', function(dogfacts) {
+              dogs = dogfacts;
+            })
+        ).then(function() {
+            callback({ cats: cats, dogs: dogs });
+        });
+    };
+
+
+
+    var first_run = run_app(function(data) {
+        console.log(data);
+        out(data);
+        console.log(XHRLog);
+    });
+
+</script>
+
+</body>
+</html>
