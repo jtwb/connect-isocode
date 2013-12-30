@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/node
 var express = require('express');
  var isocode = require('../../connect-isocode');
 
@@ -14,4 +14,4 @@ app.get(/^index|^\//, function(req, res) {
     res.sendfile(__dirname + '/index.html');
 });
 
-app.listen(3020);
+app.listen(3141);

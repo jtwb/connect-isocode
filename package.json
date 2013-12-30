@@ -21,6 +21,7 @@
     "express"
   ],
   "dependencies": {
+    "isocode": "https://github.com/jtwb/isocode/releases/download/v0.1.0/isocode-v0.1.0.tgz"
   },
   "author": "jtwb",
   "license": "MIT"

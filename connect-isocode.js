@@ -82,6 +82,7 @@ module.exports = function isocode(driver, options) {
         req.url
     ]);
 
+    process.env.PATH += ':' + __dirname + '/node_modules/isocode'
     var isocode = cproc.spawn('isocode', isocodeArgs);
 
     isocode.on(        'error', error('child process'));
