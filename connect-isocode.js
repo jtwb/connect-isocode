@@ -94,17 +94,16 @@ module.exports = function isocode(driver, options) {
     // TODO recieve metadata from isocode:
     // * statusCode
     // * response headers
-    //   preserve order!
+    //   preserve header order!
     isocode.stderr.on('data', function (data) {
       console.error('Connect-Isocode | STDERR> ', '' + data);
     });
 
 
 
-    // TODO support both Chunked Transfer Encoding and fixed length content modes
-    // using chunked for simplicity
+    // TODO support fixed content length and reflect the true server behavior
+    // using Chunked Transfer Encoding for simplicity
     // http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
-    // just respect the user app's behavior
     res.setHeader('Transfer-Encoding', 'chunked');
 
     isocode.stdout.on('data', function (chunk) {
@@ -119,143 +118,15 @@ module.exports = function isocode(driver, options) {
 
       if (code) {
         res.statusCode = 500;
-        console.error('Isocode sent status code 500. Headless browser absent or unable to process page.');
-        return res.end('{ error: "success" }');
+        console.error('Isocode [500]: Headless browser absent or unable to process page.');
+        return res.end('<h1>500 Internal Server Error</h1>');
       }
 
-      // TODO read from real response
+      // TODO relay the real server response code
       res.statusCode = 200;
+      // TODO support fixed content length
       // res.setHeader('Content-Length', content.length);
       res.end();
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /*
-    var nativeMethods = {
-      setHeader:    res.setHeader,
-      write:        res.write,
-      writeHead:    res.writeHead,
-      writeHeader:  res.writeHeader,
-      end:          res.end
-    };
-
-    var override = {
-      setHeader: function(name, value) {
-        if (name.toLowerCase() == 'content-length') { return; }
-        nativeMethods.setHeader.apply(res, arguments);
-      }
-    };
-
-    var buffer = [];
-    var userMethodCallQueue = [];
-
-    var context = [
-      '--',
-      '-',
-      req.connection.server.address().port,
-      req.url
-    ];
-
-    var filter = cproc.spawn('isocode', ['--driver=' + driver].concat(context));
-
-    filter.on(        'error', error('child process'));
-    filter.stderr.on( 'error', error('stderr'));
-    filter.stdout.on( 'error', error('stdout'));
-    filter.stdin.on(  'error', error('stdin'));
-
-
-    var queueMethodCalls = function(method) {
-      return function() {
-        var call = [method].concat(Array.prototype.slice.apply(arguments));
-        DEBUG && console.log('user:' + method, arguments);
-        userMethodCallQueue.push(call);
-      };
-    };
-
-    var restoreNativeMethods = function() {
-      var name;
-      for (name in nativeMethods) {
-        res[name] = nativeMethods[name];
-      }
-    };
-
-    var drainUserMethodQueue = function() {
-      var q = userMethodCallQueue;
-      var call;
-      while (call = q.shift()) {
-        var method = call.shift();
-        if (method in override) {
-          DEBUG && console.log('override:' + method, call);
-          override[method].apply(this, call);
-        } else {
-          DEBUG && console.log('apply:' + method, call);
-          nativeMethods[method].apply(res, call);
-        }
-      }
-    };
-
-    filter.stderr.on('data', function (data) {
-      console.error('Connect-Isocode | STDERR> ', '' + data);
-    });
-
-    filter.stdout.on('data', function (chunk) {
-      DEBUG && console.log('Connect-Isocode | STDOUT>', chunk.toString());
-      buffer.push(chunk);
-    });
-
-    filter.on('close', function(code) {
-      var content;
-      DEBUG && console.log('isocode:close', arguments);
-      restoreNativeMethods();
-
-      if (code) {
-        res.statusCode = 500;
-        console.error('Isocode sent status code 500. Headless browser absent or unable to process page.');
-        return res.end('{ error: "success" }');
-      }
-
-      drainUserMethodQueue();
-
-      content = buffer.join('');
-      DEBUG && console.log(content);
-      res.setHeader('Content-Length', content.length);
-      res.end(content);
-    });
-
-
-
-    res.setHeader   = queueMethodCalls('setHeader');
-    res.writeHead   = queueMethodCalls('writeHead');
-    res.writeHeader = queueMethodCalls('writeHeader');
-
-    // res.write = filter.stdin.write;
-    res.write = function() {
-      DEBUG && console.log('user:write', arguments, arguments[0].toString());
-      filter.stdin.write.apply(filter.stdin, arguments);
-    };
-
-    // res.end = filter.stdin.end;
-    res.end = function() {
-      DEBUG && console.log('user:end', arguments);
-      filter.stdin.end.apply(filter.stdin, arguments);
-    };
-
-    next();
-    */
   };
 };
